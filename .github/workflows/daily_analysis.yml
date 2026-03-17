@@ -57,6 +57,8 @@ jobs:
 
       - name: 执行股票分析
         env:
+          # 时区设置（北京时间）
+          TZ: Asia/Shanghai
           # 数据源配置
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
           REALTIME_SOURCE_PRIORITY: ${{ vars.REALTIME_SOURCE_PRIORITY || 'tushare,tencent,akshare_sina,efinance' }}

@@ -10,13 +10,20 @@ Any expensive data preparation should be injected by the caller via extra_contex
 """
 
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from zoneinfo import ZoneInfo
 
 from src.analyzer import AnalysisResult
 from src.config import get_config
 
 logger = logging.getLogger(__name__)
+
+
+def _get_beijing_time() -> datetime:
+    """获取北京时间"""
+    return datetime.now(ZoneInfo("Asia/Shanghai"))
 
 
 def _get_signal_level(result: AnalysisResult) -> tuple:
@@ -141,7 +148,7 @@ def render(
     sell_count = sum(1 for r in results if getattr(r, "decision_type", "") == "sell")
     hold_count = sum(1 for r in results if getattr(r, "decision_type", "") in ("hold", ""))
 
-    report_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    report_timestamp = _get_beijing_time().strftime("%Y-%m-%d %H:%M:%S")
 
     def failed_checks(checklist: List[str]) -> List[str]:
         return [c for c in (checklist or []) if c.startswith("❌") or c.startswith("⚠️")]
