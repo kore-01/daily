@@ -1152,9 +1152,10 @@ class DataFetcherManager:
         circuit_breaker = get_chip_circuit_breaker()
 
         # 定义筹码数据源优先级列表
+        # 优先使用 Tushare（数据质量高且稳定），其次是 AkShare，最后是 Efinance
         chip_sources = [
-            ("AkshareFetcher", "akshare_chip"),
             ("TushareFetcher", "tushare_chip"),
+            ("AkshareFetcher", "akshare_chip"),
             ("EfinanceFetcher", "efinance_chip"),
         ]
 

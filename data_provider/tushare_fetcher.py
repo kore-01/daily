@@ -879,6 +879,117 @@ class TushareFetcher(BaseFetcher):
         # Tushare 获取板块数据较复杂，暂时返回 None，让 AkShare 处理
         return None
 
+    def get_chip_distribution(self, stock_code: str) -> Optional["ChipDistribution"]:
+        """
+        获取筹码分布数据 (Tushare Pro)
+
+        数据来源：Tushare cyq_perf 接口
+        包含：获利比例、平均成本、筹码集中度
+
+        注意：ETF/指数没有筹码分布数据，会直接返回 None
+
+        Args:
+            stock_code: 股票代码
+
+        Returns:
+            ChipDistribution 对象（最新一天的数据），获取失败返回 None
+        """
+        from .realtime_types import ChipDistribution
+
+        # 检查API是否初始化
+        if self._api is None:
+            logger.debug(f"[API跳过] {stock_code} Tushare API 未初始化")
+            return None
+
+        # 美股/港股/ETF没有筹码分布数据
+        if _is_us_code(stock_code) or _is_etf_code(stock_code):
+            logger.debug(f"[API跳过] {stock_code} 美股/ETF无筹码分布数据")
+            return None
+
+        # 标准化代码为Tushare格式（带.SZ/.SH后缀）
+        pure_code = stock_code.strip().split('.')[0]
+        if pure_code.startswith(('sh', 'sz', 'bj')):
+            prefix = pure_code[:2]
+            code_num = pure_code[2:]
+            if prefix == 'sh':
+                ts_code = f"{code_num}.SH"
+            elif prefix == 'sz':
+                ts_code = f"{code_num}.SZ"
+            elif prefix == 'bj':
+                ts_code = f"{code_num}.BJ"
+        else:
+            # 尝试根据代码规则判断交易所
+            if pure_code.startswith('6'):
+                ts_code = f"{pure_code}.SH"
+            elif pure_code.startswith(('0', '3')):
+                ts_code = f"{pure_code}.SZ"
+            elif pure_code.startswith(('4', '8')):
+                ts_code = f"{pure_code}.BJ"
+            else:
+                ts_code = pure_code
+
+        try:
+            self._check_rate_limit()
+
+            logger.info(f"[API调用] Tushare cyq_perf(ts_code={ts_code}) 获取筹码分布...")
+            import time as _time
+            api_start = _time.time()
+
+            # 调用Tushare筹码绩效接口
+            df = self._api.query('cyq_perf', ts_code=ts_code)
+
+            api_elapsed = _time.time() - api_start
+
+            if df is None or df.empty:
+                logger.warning(f"[API返回] cyq_perf 返回空数据, 耗时 {api_elapsed:.2f}s")
+                return None
+
+            logger.info(f"[API返回] cyq_perf 成功: 返回 {len(df)} 条数据, 耗时 {api_elapsed:.2f}s")
+
+            # 取最新一天的数据
+            latest = df.iloc[0]
+
+            # 计算90%筹码集中度
+            # Tushare返回的是 cost_5pct, cost_15pct, cost_50pct, cost_85pct, cost_95pct
+            cost_5 = float(latest.get('cost_5pct', 0) or 0)
+            cost_95 = float(latest.get('cost_95pct', 0) or 0)
+            cost_15 = float(latest.get('cost_15pct', 0) or 0)
+            cost_85 = float(latest.get('cost_85pct', 0) or 0)
+
+            # 90%集中度 = (95%成本 - 5%成本) / (95%成本 + 5%成本)
+            if cost_95 + cost_5 > 0:
+                concentration_90 = (cost_95 - cost_5) / (cost_95 + cost_5)
+            else:
+                concentration_90 = 0.0
+
+            # 70%集中度 = (85%成本 - 15%成本) / (85%成本 + 15%成本)
+            if cost_85 + cost_15 > 0:
+                concentration_70 = (cost_85 - cost_15) / (cost_85 + cost_15)
+            else:
+                concentration_70 = 0.0
+
+            chip = ChipDistribution(
+                code=stock_code,
+                date=str(latest.get('trade_date', '')),
+                source="tushare",
+                profit_ratio=float(latest.get('winner_rate', 0) or 0) / 100,  # winner_rate是百分比
+                avg_cost=float(latest.get('weight_avg', 0) or 0),
+                cost_90_low=cost_5,
+                cost_90_high=cost_95,
+                concentration_90=concentration_90,
+                cost_70_low=cost_15,
+                cost_70_high=cost_85,
+                concentration_70=concentration_70,
+            )
+
+            logger.info(f"[筹码分布] {stock_code} 日期={chip.date}: 获利比例={chip.profit_ratio:.1%}, "
+                       f"平均成本={chip.avg_cost:.2f}, 90%集中度={chip.concentration_90:.2%}")
+            return chip
+
+        except Exception as e:
+            logger.error(f"[API错误] 获取 {stock_code} 筹码分布失败: {e}")
+            return None
+
 
 if __name__ == "__main__":
     # 测试代码
