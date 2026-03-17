@@ -17,15 +17,6 @@
 
 </div>
 
-## 💖 赞助商 (Sponsors)
-<div align="center">
-  <a href="https://serpapi.com/baidu-search-api?utm_source=github_daily_stock_analysis" target="_blank">
-    <img src="./sources/serpapi_banner_zh.png" alt="轻松抓取搜索引擎上的实时金融新闻数据 - SerpApi" height="160">
-  </a>
-</div>
-<br>
-
-
 ## ✨ 功能特性
 
 | 模块 | 功能 | 说明 |
@@ -377,17 +368,6 @@ LITELLM_MODEL=openai/deepseek-chat
 
 ---
 
-## ☕ 支持项目
-
-如果本项目对你有帮助，欢迎支持项目的持续维护与迭代，感谢支持 🙏  
-赞赏可备注联系方式，祝股市长虹
-
-| 支付宝 (Alipay) | 微信支付 (WeChat) | Ko-fi |
-| :---: | :---: | :---: |
-| <img src="./sources/alipay.jpg" width="200" alt="Alipay"> | <img src="./sources/wechatpay.jpg" width="200" alt="WeChat Pay"> | <a href="https://ko-fi.com/mumu157" target="_blank"><img src="./sources/ko-fi.png" width="200" alt="Ko-fi"></a> |
-
----
-
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
@@ -412,26 +392,7 @@ npm run build
 ```
 
 ## 📄 License
-[MIT License](LICENSE) © 2026 ZhuLinsen
-
-如果你在项目中使用或基于本项目进行二次开发，
-非常欢迎在 README 或文档中注明来源并附上本仓库链接。
-这将有助于项目的持续维护和社区发展。
-
-## 📬 联系与合作
-- GitHub Issues：[提交 Issue](https://github.com/ZhuLinsen/daily_stock_analysis/issues)
-- 合作邮箱：zhuls345@gmail.com
-
-## ⭐ Star History
-**如果觉得有用，请给个 ⭐ Star 支持一下！**
-
-<a href="https://star-history.com/#ZhuLinsen/daily_stock_analysis&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=ZhuLinsen/daily_stock_analysis&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=ZhuLinsen/daily_stock_analysis&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=ZhuLinsen/daily_stock_analysis&type=Date" />
- </picture>
-</a>
+[MIT License](LICENSE)
 
 ## ⚠️ 免责声明
 
