@@ -57,18 +57,26 @@ jobs:
 
       - name: 执行股票分析
         env:
+          # 数据源配置
           TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+          REALTIME_SOURCE_PRIORITY: ${{ vars.REALTIME_SOURCE_PRIORITY || 'tushare,tencent,akshare_sina,efinance' }}
+          # AI 模型配置
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
           LITELLM_MODEL: ${{ vars.LITELLM_MODEL }}
+          # 新闻搜索配置（支持多Key轮询）
+          TAVILY_API_KEYS: ${{ secrets.TAVILY_API_KEYS }}
+          NEWS_MAX_AGE_DAYS: ${{ vars.NEWS_MAX_AGE_DAYS || '3' }}
+          # 通知配置
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
           FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          # 运行配置
           STOCK_LIST: ${{ vars.STOCK_LIST }}
-          REALTIME_SOURCE_PRIORITY: ${{ vars.REALTIME_SOURCE_PRIORITY || 'tushare,tencent,akshare_sina,efinance' }}
           REPORT_TYPE: ${{ vars.REPORT_TYPE || 'simple' }}
           MARKET_REVIEW_ENABLED: ${{ vars.MARKET_REVIEW_ENABLED || 'true' }}
+          ENABLE_CHIP_DISTRIBUTION: ${{ vars.ENABLE_CHIP_DISTRIBUTION || 'false' }}
           LOG_LEVEL: INFO
 
         run: |
