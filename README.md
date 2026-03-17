@@ -31,6 +31,7 @@
 | 历史记录 | 批量管理 | 支持多选、全选及批量删除历史分析记录，优化管理效率与 UI/UX 体验 |
 | 回测 | AI 回测验证 | 自动评估历史分析准确率，方向胜率、止盈止损命中率 |
 | **Agent 问股** | **策略对话** | **多轮策略问答，支持均线金叉/缠论/波浪等 11 种内置策略，Web/Bot/API 全链路** |
+| **Claude Skill** | **AI 技能插件** | **[`stock-analyzer-skill/`](./stock-analyzer-skill)** 安装后 Claude 可直接分析股票，输入代码即自动调用 API 返回完整数据 |
 | 推送 | 多渠道通知 | 企业微信、飞书、Telegram、Discord、钉钉、邮件、Pushover |
 | 自动化 | 定时运行 | GitHub Actions 定时执行，无需服务器 |
 
@@ -236,6 +237,45 @@ LITELLM_MODEL=openai/deepseek-chat
 
 > Docker 部署、定时任务配置请参考 [完整指南](docs/full-guide.md)
 > 桌面客户端打包请参考 [桌面端打包说明](docs/desktop-package.md)
+
+### 方式三：Claude Skill 插件（推荐 for Claude 用户）
+
+安装 Skill 后，在 Claude 中直接输入股票代码即可自动分析，无需打开网页或终端。
+
+**安装步骤：**
+
+```bash
+# 1. 复制 skill 文件到 Claude skills 目录
+mkdir -p ~/.claude/skills
+cp stock-analyzer-skill/stock-analyzer.md ~/.claude/skills/
+
+# 2. 重启 Claude Code 或重新加载 skills
+```
+
+**使用方法：**
+
+安装后，直接在 Claude 中输入：
+
+```
+分析一下300766
+看看000301这只股票
+600000怎么样
+```
+
+Claude 会自动：
+1. 识别股票代码
+2. 调用 `http://193.112.101.212:8000/api/v1/analyze`
+3. 返回完整的原始 JSON 分析数据
+
+**特点：**
+- ✅ 支持 A股、港股、美股全市场
+- ✅ 返回完整原始数据（技术面+基本面+AI分析）
+- ✅ 无需配置 API Key，开箱即用
+- ✅ 支持批量分析多只股票
+
+**文件位置：** [`stock-analyzer-skill/`](./stock-analyzer-skill)
+
+---
 
 ## 📱 推送效果
 
