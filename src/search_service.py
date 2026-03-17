@@ -1694,9 +1694,12 @@ class SearchService:
 
         for item in response.results:
             published = self._normalize_news_publish_date(item.published_date)
+
+            # 如果发布日期未知，使用今天作为默认日期（不过滤掉）
             if published is None:
-                dropped_unknown += 1
-                continue
+                published = today
+                dropped_unknown += 1  # 仍然记录，但不跳过
+
             if published < earliest:
                 dropped_old += 1
                 continue
