@@ -33,6 +33,7 @@ from src.config import (
 from src.storage import persist_llm_usage
 from src.data.stock_mapping import STOCK_NAME_MAP
 from src.schemas.report_schema import AnalysisReportSchema
+from src.scoring.analyzer_integration import get_scoring_integration
 
 logger = logging.getLogger(__name__)
 
@@ -944,6 +945,17 @@ class GeminiAnalyzer:
             )
         
         try:
+            # 先计算多因子评分（作为LLM评分的补充/后备）
+            scoring_integration = get_scoring_integration()
+            multi_factor_score = scoring_integration.calculate_from_context(context)
+            if multi_factor_score:
+                logger.info(f"[多因子评分] {name}({code}) 综合得分: {multi_factor_score.total_score}, "
+                           f"技术面: {multi_factor_score.technical_score:+.1f}, "
+                           f"基本面: {multi_factor_score.fundamental_score:+.1f}, "
+                           f"策略: {multi_factor_score.strategy.value}")
+            else:
+                logger.warning(f"[多因子评分] {name}({code}) 计算失败")
+
             # 格式化输入（包含技术面数据和新闻）
             prompt = self._format_prompt(context, name, news_context)
             
@@ -994,6 +1006,11 @@ class GeminiAnalyzer:
                 result.market_snapshot = self._build_market_snapshot(context)
                 result.model_used = model_used
 
+                # 用多因子评分增强LLM结果
+                if multi_factor_score:
+                    result = scoring_integration.enhance_analysis_result(result, multi_factor_score)
+                    logger.info(f"[评分增强] 多因子评分已合并到结果中")
+
                 # 内容完整性校验（可选）
                 if not config.report_integrity_enabled:
                     break
@@ -1028,6 +1045,34 @@ class GeminiAnalyzer:
             
         except Exception as e:
             logger.error(f"AI 分析 {name}({code}) 失败: {e}")
+
+            # 尝试使用多因子评分作为后备
+            try:
+                if 'multi_factor_score' not in dir() or multi_factor_score is None:
+                    scoring_integration = get_scoring_integration()
+                    multi_factor_score = scoring_integration.calculate_from_context(context)
+
+                if multi_factor_score:
+                    logger.info(f"[后备评分] 使用多因子评分替代失败的LLM分析")
+                    fallback = scoring_integration.get_fallback_result(context)
+                    if fallback:
+                        return AnalysisResult(
+                            code=code,
+                            name=name,
+                            sentiment_score=fallback['sentiment_score'],
+                            trend_prediction=fallback['trend_prediction'],
+                            operation_advice=fallback['operation_advice'],
+                            decision_type='buy' if fallback['sentiment_score'] >= 65 else ('sell' if fallback['sentiment_score'] <= 35 else 'hold'),
+                            confidence_level=fallback['confidence_level'],
+                            analysis_summary=f"[多因子评分] {fallback['analysis_summary']}",
+                            risk_warning=fallback['risk_warning'],
+                            dashboard={'multi_factor_score': fallback['multi_factor_score']},
+                            success=True,
+                            is_fallback=True,
+                        )
+            except Exception as e2:
+                logger.error(f"[后备评分] 也失败: {e2}")
+
             return AnalysisResult(
                 code=code,
                 name=name,
