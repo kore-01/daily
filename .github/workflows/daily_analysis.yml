@@ -78,7 +78,8 @@ jobs:
           STOCK_LIST: ${{ vars.STOCK_LIST }}
           REPORT_TYPE: ${{ vars.REPORT_TYPE || 'simple' }}
           MARKET_REVIEW_ENABLED: ${{ vars.MARKET_REVIEW_ENABLED || 'true' }}
-          ENABLE_CHIP_DISTRIBUTION: ${{ vars.ENABLE_CHIP_DISTRIBUTION || 'false' }}
+          # 筹码分布（需要Tushare 2000积分以上，默认启用）
+          ENABLE_CHIP_DISTRIBUTION: ${{ vars.ENABLE_CHIP_DISTRIBUTION || 'true' }}
           LOG_LEVEL: INFO
 
         run: |
